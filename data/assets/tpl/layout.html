@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Generate AUTHORS</title>
+  {{block "css" .}}
+    <link type="text/css" rel="stylesheet" href="/assets/css/materialize.min.css"  media="screen,projection"/>
+    <link type="text/css" rel="stylesheet" href="/assets/css/app.css"  media="screen"/>
+    {{block "extracss" .}}{{end}}
+  {{end}}
+
+  <link rel="shortcut icon" href="/assets/favicon.ico" type="image/x-icon"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  {{block "extraheader" .}}{{end}}
+</head>
+<body id="page-{{block "pageid" .}}unknown{{end}}">
+  {{block "body" .}}{{end}}
+  {{block "js" .}}
+    <script type="text/javascript" src="/assets/js/jquery-2.1.1.min.js"></script>
+    <script type="text/javascript" src="/assets/js/materialize.min.js"></script>
+    <script type="text/javascript" src="/assets/js/app.js"></script>
+    {{block "extrajs" .}}{{end}}
+  {{end}}
+</body>
+</html>

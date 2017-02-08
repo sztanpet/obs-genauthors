@@ -1,0 +1,57 @@
+{{define "pageid"}}index{{end}}
+{{define "body"}}
+  <div class="section">
+    <div class="container">
+      <form method="POST">
+        <input type="hidden" name="csrf" value="{{ .CSRFToken }}">
+        <div id="error" class="row center{{if not .Error}} hide{{end}}">
+          <div class="input-field col s12">
+            {{.Error}} asdasd
+          </div>
+        </div>
+        <div class="row">
+          <div class="file-field input-field">
+            <div class="btn">
+              <span>The XLSX</span>
+              <input id="file" name="file" type="file">
+            </div>
+            <div class="file-path-wrapper">
+              <input class="file-path validate" type="text">
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="input-field col l4 s12">
+            <textarea name="authortpl" id="authortpl" class="materialize-textarea">{{.AuthorTpl}}</textarea>
+            <label for="authortpl">AUTHOR template</label>
+          </div>
+          <div class="input-field col l4 s12">
+            <textarea name="gitauthors" id="gitauthors" class="materialize-textarea">{{.GitAuthors}}</textarea>
+            <label for="gitauthors">GIT authors</label>
+          </div>
+          <div class="input-field col l4 s12">
+            <textarea name="translatorauthors" id="translatorauthors" class="materialize-textarea">{{.TranslatorAuthors}}</textarea>
+            <label for="translatorauthors">Translator authors</label>
+          </div>
+        </div>
+        <div class="row">
+          <div class="input-field col s12">
+            <textarea name="output" id="output" class="materialize-textarea">{{.Output}}</textarea>
+            <label for="output">Output</label>
+          </div>
+        </div>
+        <div class="row center">
+          <div class="input-field col s12">
+            <button class="btn waves-effect waves-light" type="submit">
+              Generate
+              <i class="material-icons right">send</i>
+            </button>
+            <div class="progress hide">
+              <div class="indeterminate"></div>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+{{end}}

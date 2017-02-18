@@ -38,7 +38,6 @@ import (
 	"github.com/gorilla/csrf"
 	"github.com/sztanpet/config"
 	"github.com/sztanpet/obs-genauthors/data"
-	"github.com/tealeg/xlsx"
 )
 
 //go:generate vfsgendev -source="github.com/sztanpet/obs-genauthors/data".Assets
@@ -70,10 +69,6 @@ func main() {
 	}
 	p, _ := os.Executable()
 	fmt.Printf("%v\n", path.Dir(p))
-
-	s, err := xlsx.FileToSlice("r.xlsx")
-	fatalErr(err, "filetoslice")
-	fmt.Printf("%v\n", s)
 
 	b, err := ioutil.ReadFile("r.xlsx")
 	fatalErr(err, "could not open")

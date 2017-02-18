@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"io"
 	"io/ioutil"
+	"os"
 	"path"
 
 	"github.com/sztanpet/obs-genauthors/data"

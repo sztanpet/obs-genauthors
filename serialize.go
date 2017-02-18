@@ -5,9 +5,10 @@ import (
 	"encoding/csv"
 	"io"
 	"log"
+	"sort"
 )
 
-func (a *app) unserializeContributors(s string) []contributor {
+func unserializeContributors(s string) []contributor {
 	ret := []contributor{}
 	r := csv.NewReader(bytes.NewBufferString(s))
 	for {
@@ -37,7 +38,7 @@ func (a *app) unserializeContributors(s string) []contributor {
 	return ret
 }
 
-func (a *app) unserializeTranslators(s string) []translation {
+func unserializeTranslators(s string) []translation {
 	ret := []translation{}
 	l := map[string][]contributor{}
 
@@ -83,7 +84,7 @@ func (a *app) unserializeTranslators(s string) []translation {
 	return ret
 }
 
-func (a *app) serializeContributors(cs []contributor) string {
+func serializeContributors(cs []contributor) string {
 	b := &bytes.Buffer{}
 	w := csv.NewWriter(b)
 
@@ -96,7 +97,7 @@ func (a *app) serializeContributors(cs []contributor) string {
 	return b.String()
 }
 
-func (a *app) serializeTranslators(ts []translation) string {
+func serializeTranslators(ts []translation) string {
 	b := &bytes.Buffer{}
 	w := csv.NewWriter(b)
 

@@ -32,7 +32,11 @@ func (a *app) indexPost(w http.ResponseWriter, r *http.Request) {
 	var cs []contributor
 	var ts []translation
 
-	err := a.htmlTpl.ExecuteTemplate(w, "layout.html", struct {
+	out, err := a.generateOutput(cs, ts)
+	// TODO show a nicely formatted error message, this is a simple user error
+	fatalErr(err, "Could not generate output")
+
+	err = a.htmlTpl.ExecuteTemplate(w, "layout.html", struct {
 		Conf              Config
 		CSRFToken         string
 		AuthorTpl         string
@@ -45,7 +49,7 @@ func (a *app) indexPost(w http.ResponseWriter, r *http.Request) {
 		AuthorTpl:         a.authorTpl(),
 		GitAuthors:        serializeContributors(cs),
 		TranslatorAuthors: serializeTranslators(ts),
-		Output:            generateOutput(cs, ts),
+		Output:            out,
 	})
 
 	fatalErr(err, "Could not execute index template")

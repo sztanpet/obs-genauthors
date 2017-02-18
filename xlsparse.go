@@ -1,8 +1,8 @@
 package main
 
 import (
-	"bytes"
 	"errors"
+	"io"
 	"regexp"
 	"sort"
 
@@ -11,8 +11,8 @@ import (
 
 var userRex = regexp.MustCompile(`^(.+) \((.+)\)$`)
 
-func (a *app) parseTranslatorXls(r *bytes.Reader) ([]translation, error) {
-	xls, err := xlsx.OpenReaderAt(r, int64(r.Len()))
+func parseTranslatorXls(r io.ReaderAt, l int64) ([]translation, error) {
+	xls, err := xlsx.OpenReaderAt(r, l)
 	fatalErr(err, "Could not open xls")
 
 	if len(xls.Sheets) == 0 {
@@ -30,7 +30,7 @@ func (a *app) parseTranslatorXls(r *bytes.Reader) ([]translation, error) {
 
 		// if the user cell is empty either its an empty row or we are at the end
 		user, _ := row.Cells[2].String()
-		if user == "" {
+		if user == "" || user == "REMOVED_USER" {
 			continue
 		}
 

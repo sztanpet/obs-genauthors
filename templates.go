@@ -6,11 +6,28 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"text/template"
 
 	"github.com/sztanpet/obs-genauthors/data"
 )
 
+func (a *app) setupTextTemplates() error {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+
+	tpl, err := template.New("authors").Parse(authorTpl())
+	if err != nil {
+		return err
+	}
+
+	a.textTpl = tpl
+	return nil
+}
+
 func (a *app) generateOutput(cs []contributor, ts []translation) (string, error) {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+
 	b := &bytes.Buffer{}
 	err := a.textTpl.ExecuteTemplate(b, "", struct {
 		Contributors []contributor
@@ -34,7 +51,7 @@ func overridePath() string {
 	return path.Dir(p) + "/authors.tpl"
 }
 
-func (a *app) saveAuthorTpl(data []byte) {
+func saveAuthorTpl(data []byte) {
 	err := ioutil.WriteFile(overridePath(), data, 0644)
 	fatalErr(err, "Could not write override authors.tpl")
 }
@@ -47,7 +64,7 @@ func readFile(r io.Reader) string {
 	return b.String()
 }
 
-func (a *app) authorTpl() string {
+func authorTpl() string {
 	p := overridePath()
 
 	// is there an override?

@@ -20,17 +20,14 @@
 package main
 
 import (
-	"bytes"
 	"context"
-	"fmt"
 	"html/template"
 	"io"
 	"io/ioutil"
 	"net/http"
-	"os"
-	"path"
 	"strings"
 	"sync"
+	ttemplate "text/template"
 	"time"
 
 	"github.com/NYTimes/gziphandler"
@@ -43,7 +40,6 @@ import (
 //go:generate vfsgendev -source="github.com/sztanpet/obs-genauthors/data".Assets
 type app struct {
 	htmlTpl *template.Template
-	textTpl *template.Template
 	config  Config
 	routes  struct {
 		indexGet, indexPost http.Handler
@@ -52,6 +48,9 @@ type app struct {
 
 	once     sync.Once
 	shutdown chan struct{}
+
+	mu      sync.Mutex
+	textTpl *ttemplate.Template
 }
 
 type contributor struct {
@@ -67,17 +66,12 @@ func main() {
 	a := &app{
 		shutdown: make(chan struct{}),
 	}
-	p, _ := os.Executable()
-	fmt.Printf("%v\n", path.Dir(p))
-
-	b, err := ioutil.ReadFile("r.xlsx")
-	fatalErr(err, "could not open")
-	buf := bytes.NewReader(b)
-	ts, err := a.parseTranslatorXls(buf)
-	fmt.Printf("%v %v\n", ts, err)
 
 	a.setupConfig()
-	a.setupTextTemplates()
+
+	err := a.setupTextTemplates()
+	fatalErr(err, "Could not parse authors.tpl")
+
 	a.setupHTMLTemplates()
 	a.setupAndRunHTTP()
 }
@@ -86,13 +80,6 @@ func (a *app) setupConfig() {
 	a.config = Config{}
 	err := config.Init(&a.config, sampleconf, "config.ini")
 	fatalErr(err, "Could not parse config.ini")
-}
-
-func (a *app) setupTextTemplates() {
-	tpl, err := template.New("authors").ParseFiles("data/assets/tpl/authors.tpl")
-	fatalErr(err, "Could not parse authors.tpl")
-
-	a.textTpl = tpl
 }
 
 func (a *app) setupHTMLTemplates() {
@@ -188,7 +175,6 @@ func (a *app) handleExtraHeaders(next http.Handler) http.Handler {
 			` block-all-mixed-content;`,
 		)
 
-		// override as necessary, just a default
 		h.Set("Content-Type", "text/html; charset=utf-8")
 
 		next.ServeHTTP(w, r)

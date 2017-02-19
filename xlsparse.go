@@ -5,6 +5,7 @@ import (
 	"io"
 	"regexp"
 	"sort"
+	"strings"
 
 	"github.com/tealeg/xlsx"
 )
@@ -30,28 +31,36 @@ func parseTranslatorXls(r io.ReaderAt, l int64) ([]translation, error) {
 
 		// if the user cell is empty either its an empty row or we are at the end
 		user, _ := row.Cells[2].String()
-		if user == "" || user == "REMOVED_USER" {
+		user = strings.TrimSpace(user)
+		if user == "" || user == "REMOVED_USER" || user == "no data available" {
 			continue
 		}
 
 		// if there is a language and is different from the current language, use it
-		lang, _ := row.Cells[0].String()
-		if lang != "" && lang != currentLang {
-			currentLang = lang
+		{
+			lang, _ := row.Cells[0].String()
+			lang = strings.TrimSpace(lang)
+			if lang != "" && lang != currentLang {
+				currentLang = lang
+			}
 		}
 
 		// initialize the map at the given language if it does not exist
-		if _, ok := m[lang]; !ok {
-			m[lang] = map[string]struct{}{}
+		if _, ok := m[currentLang]; !ok {
+			m[currentLang] = map[string]struct{}{}
 		}
 
-		m[lang][user] = struct{}{}
+		m[currentLang][user] = struct{}{}
 	}
 
 	// now post process the users for their nicks
 	// also order everything nicely
 	ret := make([]translation, 0, len(m))
 	for lang, users := range m {
+		if len(users) == 0 {
+			continue
+		}
+
 		crs := make([]contributor, 0, len(users))
 		for user := range users {
 			var nick string

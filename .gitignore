@@ -1,3 +1,5 @@
 obs-genauthors
 config.ini
 *.sublime-*
+data/assets_vfsdata.go
+authors.tpl

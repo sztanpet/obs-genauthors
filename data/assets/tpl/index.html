@@ -2,10 +2,10 @@
 {{define "body"}}
   <div class="section">
     <div class="container">
-      <form method="POST">
+      <form method="POST" enctype="multipart/form-data">
         <input type="hidden" name="csrf" value="{{ .CSRFToken }}">
         <div id="error" class="row center{{if not .Error}} hide{{end}}">
-          <div class="input-field col s12">
+          <div class="input-field col s12 white-text pink darken-3 card-panel">
             {{.Error}}
           </div>
         </div>
@@ -45,6 +45,10 @@
             <button class="btn waves-effect waves-light" type="submit">
               Generate
               <i class="material-icons right">send</i>
+            </button>
+            <button id="clear" class="btn waves-effect waves-light" type="reset">
+              Clear
+              <i class="material-icons right">cancel</i>
             </button>
             <div class="progress hide">
               <div class="indeterminate"></div>

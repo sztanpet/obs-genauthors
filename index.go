@@ -15,6 +15,7 @@ func (a *app) indexGet(w http.ResponseWriter, r *http.Request) {
 		GitAuthors        string
 		TranslatorAuthors string
 		Output            string
+		Error             string
 	}{
 		Conf:      a.config,
 		CSRFToken: csrf.Token(r),
@@ -38,7 +39,10 @@ func (a *app) indexPost(w http.ResponseWriter, r *http.Request) {
 	if s := r.PostFormValue("gitauthors"); s != "" {
 		cs = unserializeContributors(s)
 	} else {
-		cs = a.gitAuthors()
+		cs, err = a.gitAuthors()
+		if err != nil {
+			errStr = "Could not parse git authros: " + err.Error()
+		}
 	}
 
 	if s := r.PostFormValue("translatorauthors"); s != "" {
@@ -65,6 +69,7 @@ func (a *app) indexPost(w http.ResponseWriter, r *http.Request) {
 		err = a.setupTextTemplates()
 		if err != nil {
 			errStr = "Invalid template: " + err.Error()
+			delAuthorTpl()
 		}
 	}
 

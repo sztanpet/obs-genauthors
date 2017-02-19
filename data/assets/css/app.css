@@ -27,3 +27,8 @@
   -moz-osx-font-smoothing: grayscale;
   font-feature-settings: 'liga';
 }
+
+#page-index textarea {
+  max-height: 250px;
+  overflow-y: auto;
+}

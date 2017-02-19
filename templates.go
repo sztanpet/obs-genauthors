@@ -29,7 +29,7 @@ func (a *app) generateOutput(cs []contributor, ts []translation) (string, error)
 	defer a.mu.Unlock()
 
 	b := &bytes.Buffer{}
-	err := a.textTpl.ExecuteTemplate(b, "", struct {
+	err := a.textTpl.ExecuteTemplate(b, "authors", struct {
 		Contributors []contributor
 		Translations []translation
 	}{
@@ -54,6 +54,10 @@ func overridePath() string {
 func saveAuthorTpl(data []byte) {
 	err := ioutil.WriteFile(overridePath(), data, 0644)
 	fatalErr(err, "Could not write override authors.tpl")
+}
+
+func delAuthorTpl() {
+	_ = os.Remove(overridePath())
 }
 
 func readFile(r io.Reader) string {

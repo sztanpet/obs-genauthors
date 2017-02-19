@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"sort"
+	"strings"
 )
 
 func unserializeContributors(s string) []contributor {
@@ -26,8 +27,8 @@ func unserializeContributors(s string) []contributor {
 		}
 
 		ret = append(ret, contributor{
-			Name: r[0],
-			Nick: r[1],
+			Name:  strings.TrimSpace(r[0]),
+			Email: strings.TrimSpace(r[1]),
 		})
 	}
 
@@ -56,14 +57,15 @@ func unserializeTranslators(s string) []translation {
 			log.Printf("Invalid line in csv, pased: %v\n", r)
 			continue
 		}
+		lang := strings.TrimSpace(r[0])
 
-		cs := l[r[0]]
+		cs := l[lang]
 		cs = append(cs, contributor{
-			Name: r[1],
-			Nick: r[2],
+			Name: strings.TrimSpace(r[1]),
+			Nick: strings.TrimSpace(r[2]),
 		})
 
-		l[r[0]] = cs
+		l[lang] = cs
 	}
 
 	for k, v := range l {
@@ -89,10 +91,11 @@ func serializeContributors(cs []contributor) string {
 	w := csv.NewWriter(b)
 
 	for _, c := range cs {
-		if err := w.Write([]string{c.Name, c.Nick}); err != nil {
+		if err := w.Write([]string{c.Name, c.Email}); err != nil {
 			fatalErr(err, "Could not write csv of contributors")
 		}
 	}
+	w.Flush()
 
 	return b.String()
 }
@@ -108,6 +111,7 @@ func serializeTranslators(ts []translation) string {
 			}
 		}
 	}
+	w.Flush()
 
 	return b.String()
 }

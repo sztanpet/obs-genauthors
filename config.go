@@ -6,11 +6,13 @@ import (
 )
 
 type Config struct {
-	Addr   string `toml:"listenaddr"`
-	Secret string `toml:"secret"`
+	Addr     string `toml:"listenaddr"`
+	Secret   string `toml:"secret"`
+	RepoPath string `toml:"repopath"`
 }
 
 var sampleconf = `listenaddr=":80"
+repopath="."
 secret="`
 
 func init() {

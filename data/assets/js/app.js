@@ -11,4 +11,8 @@ function runIfExists( selector, func ) {
 }
 
 function setupIndex() {
+  $('#clear').click(function(e) {
+    e.preventDefault();
+    $('textarea').val('');
+  })
 }

@@ -37,7 +37,6 @@ import (
 	"github.com/sztanpet/obs-genauthors/data"
 )
 
-//go:generate vfsgendev -source="github.com/sztanpet/obs-genauthors/data".Assets
 type app struct {
 	htmlTpl *template.Template
 	config  Config
@@ -54,7 +53,7 @@ type app struct {
 }
 
 type contributor struct {
-	Name, Nick string
+	Name, Nick, Email string
 }
 
 type translation struct {

@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	htemplate "html/template"
 	"io"
 	"io/ioutil"
 	"os"
@@ -11,11 +12,28 @@ import (
 	"github.com/sztanpet/obs-genauthors/data"
 )
 
+func (a *app) setupHTMLTemplates() {
+	f, err := data.Assets.Open("tpl/layout.html")
+	fatalErr(err, "Could not open layout.html")
+
+	l, err := htemplate.New("layout.html").Parse(readFile(f))
+	fatalErr(err, "Could not parse layout.html")
+
+	f, err = data.Assets.Open("tpl/index.html")
+	fatalErr(err, "Could not open index.html")
+
+	tpl, err := htemplate.Must(l.Clone()).Parse(readFile(f))
+	fatalErr(err, "Could not parse index.html")
+
+	a.htmlTpl = tpl
+}
+
 func (a *app) setupTextTemplates() error {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 
-	tpl, err := template.New("authors").Parse(authorTpl())
+	s := authorTpl()
+	tpl, err := template.New("authors").Parse(s)
 	if err != nil {
 		return err
 	}

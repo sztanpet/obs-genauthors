@@ -41,7 +41,7 @@ func (a *app) indexPost(w http.ResponseWriter, r *http.Request) {
 	} else {
 		cs, err = a.gitAuthors()
 		if err != nil {
-			errStr = "Could not parse git authros: " + err.Error()
+			errStr = "Could not parse git authors: " + err.Error()
 		}
 	}
 

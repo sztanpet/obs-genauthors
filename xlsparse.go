@@ -4,7 +4,6 @@ import (
 	"errors"
 	"io"
 	"regexp"
-	"sort"
 	"strings"
 
 	"github.com/tealeg/xlsx"
@@ -21,7 +20,7 @@ func parseTranslatorXls(r io.ReaderAt, l int64) ([]translation, error) {
 	}
 
 	// map[language]deduplicatedusers
-	m := map[string]map[string]struct{}{}
+	m := map[string]map[string]int{}
 	var currentLang string
 	for rk, row := range xls.Sheets[0].Rows {
 		// data starts from row 6 (7 if 1based)
@@ -31,6 +30,7 @@ func parseTranslatorXls(r io.ReaderAt, l int64) ([]translation, error) {
 
 		// if the user cell is empty either its an empty row or we are at the end
 		user, _ := row.Cells[2].String()
+		commits, _ := row.Cells[3].Int()
 		user = strings.TrimSpace(user)
 		if user == "" || user == "REMOVED_USER" || user == "no data available" {
 			continue
@@ -47,10 +47,11 @@ func parseTranslatorXls(r io.ReaderAt, l int64) ([]translation, error) {
 
 		// initialize the map at the given language if it does not exist
 		if _, ok := m[currentLang]; !ok {
-			m[currentLang] = map[string]struct{}{}
+			m[currentLang] = map[string]int{}
 		}
 
-		m[currentLang][user] = struct{}{}
+		commits += m[currentLang][user]
+		m[currentLang][user] = commits
 	}
 
 	// now post process the users for their nicks
@@ -62,7 +63,7 @@ func parseTranslatorXls(r io.ReaderAt, l int64) ([]translation, error) {
 		}
 
 		crs := make([]contributor, 0, len(users))
-		for user := range users {
+		for user, commits := range users {
 			var nick string
 			matches := userRex.FindStringSubmatch(user)
 
@@ -72,14 +73,11 @@ func parseTranslatorXls(r io.ReaderAt, l int64) ([]translation, error) {
 			}
 
 			crs = append(crs, contributor{
-				Name: user,
-				Nick: nick,
+				Name:    user,
+				Nick:    nick,
+				Commits: commits,
 			})
 		}
-
-		sort.Slice(crs, func(i, j int) bool {
-			return crs[i].Name < crs[j].Name
-		})
 
 		ret = append(ret, translation{
 			Language:    lang,
@@ -87,8 +85,6 @@ func parseTranslatorXls(r io.ReaderAt, l int64) ([]translation, error) {
 		})
 	}
 
-	sort.Slice(ret, func(i, j int) bool {
-		return ret[i].Language < ret[j].Language
-	})
+	orderTranslations(ret)
 	return ret, nil
 }

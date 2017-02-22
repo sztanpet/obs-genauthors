@@ -3,9 +3,9 @@ package main
 import (
 	"bytes"
 	"errors"
+	"log"
 	"os"
 	"os/exec"
-	"sort"
 )
 
 func (a *app) gitAuthors() ([]contributor, error) {
@@ -14,17 +14,30 @@ func (a *app) gitAuthors() ([]contributor, error) {
 		return nil, err
 	}
 
+	log.Printf("GIT binary found at %q", gitPath)
+	log.Printf("Descending into the repo path: %q", a.config.RepoPath)
 	err = os.Chdir(a.config.RepoPath)
 	if err != nil {
 		return nil, err
 	}
 
-	out, err := exec.Command(gitPath, "log", "--all", "--format=%aN|%cE").Output()
+	out, err := exec.Command(
+		gitPath,
+		"log",
+		"--all",
+		"--no-merges",
+		"--use-mailmap",
+		"--format=%aN|%cE",
+	).Output()
 	if err != nil {
 		return nil, err
 	}
 
-	c := map[string]string{}
+	c := map[string]struct {
+		email   string
+		commits int
+	}{}
+
 	ls := bytes.Split(out, []byte("\n"))
 	for _, l := range ls {
 		l = bytes.TrimSpace(l)
@@ -35,20 +48,24 @@ func (a *app) gitAuthors() ([]contributor, error) {
 			return nil, errors.New("Unexpected separator found in git author line")
 		}
 
-		c[string(prts[0])] = string(prts[1])
+		name := string(prts[0])
+		email := string(prts[1])
+		data := c[name]
+		data.email = email
+		data.commits++
+
+		c[name] = data
 	}
 
 	ret := make([]contributor, 0, len(c))
-	for name, mail := range c {
+	for name, data := range c {
 		ret = append(ret, contributor{
-			Name:  name,
-			Email: mail,
+			Name:    name,
+			Email:   data.email,
+			Commits: data.commits,
 		})
 	}
 
-	sort.Slice(ret, func(i, j int) bool {
-		return ret[i].Name < ret[j].Name
-	})
-
+	orderContributors(ret)
 	return ret, nil
 }

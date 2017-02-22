@@ -24,6 +24,7 @@ import (
 	"html/template"
 	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"strings"
 	"sync"
@@ -54,6 +55,7 @@ type app struct {
 
 type contributor struct {
 	Name, Nick, Email string
+	Commits           int
 }
 
 type translation struct {
@@ -79,16 +81,6 @@ func (a *app) setupConfig() {
 	a.config = Config{}
 	err := config.Init(&a.config, sampleconf, "config.ini")
 	fatalErr(err, "Could not parse config.ini")
-}
-
-func (a *app) setupHTMLTemplates() {
-	l, err := template.New("layout").ParseFiles("data/assets/tpl/layout.html")
-	fatalErr(err, "Could not parse layout.html")
-
-	tpl, err := template.Must(l.Clone()).ParseFiles("data/assets/tpl/index.html")
-	fatalErr(err, "Could not parse index.html")
-
-	a.htmlTpl = tpl
 }
 
 func (a *app) setupAndRunHTTP() {
@@ -123,6 +115,8 @@ func (a *app) setupAndRunHTTP() {
 
 	a.routes.assets = http.StripPrefix("/assets/", http.FileServer(data.Assets))
 	a.routes.assets = gziphandler.GzipHandler(a.routes.assets)
+
+	log.Printf("Starting server: %s\n", a.config.Addr)
 	panic(s.ListenAndServe())
 }
 

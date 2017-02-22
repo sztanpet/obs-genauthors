@@ -6,8 +6,29 @@ import (
 	"io"
 	"log"
 	"sort"
+	"strconv"
 	"strings"
 )
+
+func orderTranslations(ts []translation) {
+	for _, v := range ts {
+		orderContributors(v.Translators)
+	}
+	sort.Slice(ts, func(i, j int) bool {
+		return ts[i].Language < ts[j].Language
+	})
+}
+func orderContributors(cs []contributor) {
+	sort.Slice(cs, func(i, j int) bool {
+		if cs[i].Commits != cs[j].Commits {
+			return cs[i].Commits > cs[j].Commits
+		}
+
+		is := strings.ToLower(cs[i].Name)
+		js := strings.ToLower(cs[j].Name)
+		return is < js
+	})
+}
 
 func unserializeContributors(s string) []contributor {
 	ret := []contributor{}
@@ -21,21 +42,21 @@ func unserializeContributors(s string) []contributor {
 			fatalErr(err, "Could not read contributors string as csv")
 		}
 
-		if len(r) != 2 {
+		if len(r) != 3 {
 			log.Printf("Invalid line in csv, pased: %v\n", r)
 			continue
 		}
 
+		commits, _ := strconv.Atoi(r[2])
+
 		ret = append(ret, contributor{
-			Name:  strings.TrimSpace(r[0]),
-			Email: strings.TrimSpace(r[1]),
+			Name:    strings.TrimSpace(r[0]),
+			Email:   strings.TrimSpace(r[1]),
+			Commits: commits,
 		})
 	}
 
-	sort.Slice(ret, func(i, j int) bool {
-		return ret[i].Name < ret[j].Name
-	})
-
+	orderContributors(ret)
 	return ret
 }
 
@@ -53,36 +74,31 @@ func unserializeTranslators(s string) []translation {
 			fatalErr(err, "Could not read contributors string as csv")
 		}
 
-		if len(r) != 3 {
+		if len(r) != 4 {
 			log.Printf("Invalid line in csv, pased: %v\n", r)
 			continue
 		}
 		lang := strings.TrimSpace(r[0])
+		commits, _ := strconv.Atoi(r[3])
 
 		cs := l[lang]
 		cs = append(cs, contributor{
-			Name: strings.TrimSpace(r[1]),
-			Nick: strings.TrimSpace(r[2]),
+			Name:    strings.TrimSpace(r[1]),
+			Nick:    strings.TrimSpace(r[2]),
+			Commits: commits,
 		})
 
 		l[lang] = cs
 	}
 
 	for k, v := range l {
-		sort.Slice(v, func(i, j int) bool {
-			return v[i].Name < v[j].Name
-		})
-
 		ret = append(ret, translation{
 			Language:    k,
 			Translators: v,
 		})
 	}
 
-	sort.Slice(ret, func(i, j int) bool {
-		return ret[i].Language < ret[j].Language
-	})
-
+	orderTranslations(ret)
 	return ret
 }
 
@@ -91,7 +107,7 @@ func serializeContributors(cs []contributor) string {
 	w := csv.NewWriter(b)
 
 	for _, c := range cs {
-		if err := w.Write([]string{c.Name, c.Email}); err != nil {
+		if err := w.Write([]string{c.Name, c.Email, strconv.Itoa(c.Commits)}); err != nil {
 			fatalErr(err, "Could not write csv of contributors")
 		}
 	}
@@ -106,7 +122,7 @@ func serializeTranslators(ts []translation) string {
 
 	for _, t := range ts {
 		for _, c := range t.Translators {
-			if err := w.Write([]string{t.Language, c.Name, c.Nick}); err != nil {
+			if err := w.Write([]string{t.Language, c.Name, c.Nick, strconv.Itoa(c.Commits)}); err != nil {
 				fatalErr(err, "Could not write csv of contributors")
 			}
 		}
